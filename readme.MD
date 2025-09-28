@@ -123,7 +123,7 @@ http://localhost:5001/api
 
 ```
 Frontend (Vue) <-> Express API <-> MongoDB
-Mobile (Flutter) <------^
+Mobile (Flutter)
 ```
 
 ## 👤 Author
