@@ -1,184 +1,132 @@
-# 📌 Attendance Service API
+# Attendance Service (Express + MongoDB)
 
-A Node.js + Express.js backend service for managing employee attendance with MongoDB Atlas as the database.
-Supports user authentication, role-based registration (`admin` & `employee`), and attendance tracking (check-in & check-out).
+RESTful API backend untuk sistem absensi karyawan.  
+Dibangun menggunakan **Express.js**, **MongoDB (Mongoose)**, dan **Day.js** untuk mendukung aplikasi **Attendance Web** dan **Attendance Mobile**.
 
----
+## 🚀 Features
 
-## ✨ Features
+- **Autentikasi & Manajemen Pengguna**
+  - Registrasi admin dan karyawan.
+  - Login pengguna.
+  - Ambil data semua user atau berdasarkan perusahaan.
+  - Hapus pengguna.
 
-- **User Management**
+- **Manajemen Perusahaan**
+  - Registrasi perusahaan baru dengan **Google Maps API (RapidAPI)** untuk validasi alamat.
+  - Update informasi perusahaan (nama, alamat, jam kerja, radius lokasi).
+  - Ambil informasi jam kerja perusahaan.
+  - Ambil data semua perusahaan atau berdasarkan `companyCode`.
 
-  - Register as `employee` or `admin`
-  - Secure password hashing with `bcrypt`
-  - JWT authentication with role-based claims
-  - Retrieve all users (without passwords)
+- **Absensi (Check-in & Check-out)**
+  - Validasi lokasi dengan **geofencing** (Haversine formula).
+  - Validasi jam masuk (timeStart + graceMinutes).
+  - Menyimpan status keterlambatan (`late`).
+  - Endpoint untuk semua absensi, per user, per perusahaan, atau khusus hari ini.
 
-- **Attendance Management**
+- **Cuti**
+  - Ajukan cuti (dengan validasi overlap).
+  - Approve / decline cuti.
+  - Batalkan cuti (jika status masih *waiting*).
+  - Ambil semua cuti, per user, atau per perusahaan.
 
-  - Check-in with timestamp and location (latitude & longitude)
-  - Check-out with timestamp and location
-  - Fetch attendance records by user
-  - Fetch all attendance records (admin only)
+## 📦 Tech Stack
 
----
+- **Runtime**: [Node.js](https://nodejs.org/)
+- **Framework**: [Express.js](https://expressjs.com/)
+- **Database**: [MongoDB](https://www.mongodb.com/) + [Mongoose](https://mongoosejs.com/)
+- **Time Handling**: [Day.js](https://day.js.org/)
+- **Maps API**: [Google Map Places API (via RapidAPI)](https://rapidapi.com/)
 
-## 🗂 Project Structure
+## 🔗 Related Repositories
 
-```
-attendance-service/
-│── src/
-│   ├── controllers/
-│   │   ├── authController.js     # Register, login, user management
-│   │   └── attendanceController.js # Attendance CRUD
-│   ├── models/
-│   │   ├── User.js               # User schema (username, password, role)
-│   │   └── Attendance.js         # Attendance schema (checkin/checkout)
-│   ├── routes/
-│   │   ├── authRoutes.js         # /api/auth endpoints
-│   │   └── attendanceRoutes.js   # /api/attendance endpoints
-│   ├── config/
-│   │   └── db.js                 # MongoDB connection
-│   └── server.js                 # Express app entry point
-│── .env                          # Environment variables
-│── package.json
-│── README.md
-```
+- **Frontend Web Dashboard (Vue 3)**  
+  👉 [my-attendance-app](https://github.com/viraalfita/my-attendance-app)
 
----
+- **Mobile App (Flutter)**  
+  👉 [attendance (Mobile)](https://github.com/viraalfita/attendance)
 
 ## ⚙️ Installation & Setup
 
-### 1. Clone repository
-
+### 1. Clone Repository
 ```bash
-git clone https://github.com/your-username/attendance-service.git
+git clone https://github.com/viraalfita/attendance-service.git
 cd attendance-service
-```
+````
 
-### 2. Install dependencies
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Configure environment variables
+### 3. Konfigurasi Environment
 
-Create a `.env` file:
+Buat file `.env` di root project:
 
 ```env
-MONGO_URI=mongodb+srv://<user>:<password>@cluster0.mongodb.net/attendance
-JWT_SECRET=supersecretkey
-PORT=5000
+PORT=5001
+MONGODB_URI=mongodb://localhost:27017/attendance
+JWT_SECRET=your-secret-key
+RAPIDAPI_KEY=your-rapidapi-key
 ```
 
-### 4. Run the service
-
-Development:
+### 4. Jalankan Server
 
 ```bash
 npm run dev
 ```
 
-Production:
+API tersedia di:
 
-```bash
-npm start
+```
+http://localhost:5001/api
 ```
 
----
+## 📚 API Endpoints (Ringkasan)
 
-## 🚀 API Endpoints
+### Auth
 
-### 🔐 Authentication
+* `POST /api/auth/register/employee`
+* `POST /api/auth/register/admin`
+* `POST /api/auth/login`
+* `GET /api/auth/` → semua user
+* `GET /api/auth/company/:companyId` → user per perusahaan
+* `DELETE /api/auth/:id` → hapus user
 
-| Method | Endpoint                      | Description                 |
-| ------ | ----------------------------- | --------------------------- |
-| POST   | `/api/auth/register/admin`    | Register a new admin        |
-| POST   | `/api/auth/register/employee` | Register a new employee     |
-| POST   | `/api/auth/login`             | Login and get JWT token     |
-| GET    | `/api/auth/users`             | Get all users (no password) |
+### Company
 
----
+* `POST /api/companies/register`
+* `PATCH /api/companies/:id`
+* `GET /api/companies/` → semua perusahaan
+* `GET /api/companies/:companyCode`
+* `GET /api/companies/hours/:companyCode`
 
-### 🕒 Attendance
+### Attendance
 
-| Method | Endpoint                       | Description                |
-| ------ | ------------------------------ | -------------------------- |
-| POST   | `/api/attendance/checkin`      | Record employee check-in   |
-| POST   | `/api/attendance/checkout`     | Record employee check-out  |
-| GET    | `/api/attendance/user/:userId` | Get attendance by user     |
-| GET    | `/api/attendance`              | Get all attendance records |
+* `POST /api/attendance/checkin`
+* `POST /api/attendance/checkout`
+* `GET /api/attendance/` → semua absensi
+* `GET /api/attendance/:userId` → absensi per user
+* `GET /api/attendance/company/:companyId`
+* `GET /api/attendance/today/:userId`
+* `GET /api/attendance/company/:companyId/today`
 
----
+### Leaves
 
-## 📌 Example Requests
+* `POST /api/leaves/`
+* `GET /api/leaves/`
+* `GET /api/leaves/:userId`
+* `PATCH /api/leaves/:id/status`
+* `DELETE /api/leaves/:id`
 
-### Register Employee
+## 📸 Architecture
 
-```http
-POST /api/auth/register/employee
-Content-Type: application/json
-
-{
-  "username": "john",
-  "password": "123456"
-}
+```
+Frontend (Vue) <-> Express API <-> MongoDB
+Mobile (Flutter) <------^
 ```
 
-### Register Admin
+## 👤 Author
 
-```http
-POST /api/auth/register/admin
-Content-Type: application/json
-
-{
-  "username": "superadmin",
-  "password": "123456"
-}
-```
-
-### Login
-
-```http
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "username": "john",
-  "password": "123456"
-}
-```
-
-Response:
-
-```json
-{
-  "token": "xxx.yyy.zzz",
-  "role": "employee"
-}
-```
-
-### Check-in
-
-```http
-POST /api/attendance/checkin
-Authorization: Bearer <JWT_TOKEN>
-Content-Type: application/json
-
-{
-  "userId": "68a1e966249c5c781194bd4a",
-  "latitude": -6.2,
-  "longitude": 106.816666
-}
-```
-
----
-
-## 🔒 Security Notes
-
-- Passwords are hashed with `bcrypt` before saving to database.
-- JWT tokens include user `id` and `role`.
-- You can implement middleware to restrict certain endpoints to `admin` role only (recommended).
-
----
+Developed by **Vira Alfita (TI 3C, Politeknik Negeri Malang)**
+Part of integrated system: **Web Dashboard + Express Backend + Mobile Flutter Attendance**
