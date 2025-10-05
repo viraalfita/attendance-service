@@ -14,6 +14,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get("/", (_req, res) =>
+  res.json({ ok: true, service: "attendance-service" })
+);
+app.get("/health", (_req, res) => res.send("OK"));
+
 app.use("/api/companies", companyRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/attendance", attendanceRoutes);
