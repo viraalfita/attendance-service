@@ -124,6 +124,7 @@ export const loginUser = async (req, res) => {
       company: {
         code: company.companyCode,
         name: company.name,
+        companyId: company._id,
       },
       working_hours: {
         start: company.time_start,
